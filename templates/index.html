@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Text Summarizer & Review Predictor</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(to right, #e0f7fa, #fce4ec);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+
+    header {
+      text-align: center;
+      padding: 30px;
+      background-color: #006064;
+      color: white;
+      font-size: 2rem;
+    }
+
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 30px;
+      gap: 30px;
+    }
+
+    .card {
+      background-color: white;
+      border-radius: 15px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      padding: 25px;
+      width: 400px;
+      transition: transform 0.2s ease-in-out;
+    }
+
+    .card:hover {
+      transform: scale(1.02);
+    }
+
+    textarea {
+      width: 100%;
+      height: 150px;
+      padding: 10px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      resize: vertical;
+    }
+
+    button {
+      background-color: #006064;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 1rem;
+      margin-top: 15px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #004d40;
+    }
+
+    .output {
+      margin-top: 15px;
+      padding: 10px;
+      background-color: #f1f8e9;
+      border-left: 5px solid #8bc34a;
+      border-radius: 5px;
+      white-space: pre-wrap;
+    }
+
+    @media (max-width: 900px) {
+      .card {
+        width: 90%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>Text Summary Generator & Review Sentiment Predictor</header>
+
+<div class="container">
+
+  <!-- Text Summarizer -->
+  <div class="card">
+    <h2>Text Summarizer</h2>
+    <textarea id="summaryInput" placeholder="Enter text to summarize..."></textarea>
+    
+    <button onclick="summarizeText()">Summarize</button>
+
+    <div class="output" id="summaryOutput"></div>
+  </div>
+
+  <!-- Review Predictor -->
+  <div class="card">
+    <h2>Review Sentiment</h2>
+    <textarea id="reviewInput" placeholder="Enter a review to analyze sentiment..."></textarea>
+    <button onclick="predictReview()">Predict Sentiment</button>
+    <div class="output" id="reviewOutput"></div>
+  </div>
+
+</div>
+
+<script>
+  async function summarizeText() {
+    const input = document.getElementById('summaryInput').value.trim();
+    const output = document.getElementById('summaryOutput');
+    
+    output.innerText = "⏳ Summarizing...";
+
+    if (input.length === 0) {
+      output.innerText = "⚠️ Please enter some text.";
+      return;
+    }
+
+    try {
+      const response = await fetch("/summarize", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ text: input })
+      });
+
+      const data = await response.json();
+      output.innerText = "📄 Summary:\n" + data.summary;
+    } catch (err) {
+      output.innerText = "❌ Error while summarizing.";
+      console.error(err);
+    }
+  }
+
+  async function predictReview() {
+    const input = document.getElementById('reviewInput').value.trim();
+    const output = document.getElementById('reviewOutput');
+    output.innerText = "⏳ Predicting...";
+
+    if (input.length === 0) {
+      output.innerText = "⚠️ Please enter a review.";
+      return;
+    }
+
+    try {
+      const response = await fetch("/rating", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ review: input })
+      });
+
+      const data = await response.json();
+      const ratingLabels = {
+         1: "Very bad",
+         2: "Bad",
+         3: "Average",
+         4: "Good",
+         5: "Excellent"
+      };
+      output.innerText = "🧠 Sentiment:\n" + data.rating +  " "+ ratingLabels[data.rating];
+    
+    } catch (err) {
+      output.innerText = "❌ Error while predicting sentiment.";
+      console.error(err);
+    }
+  }
+</script>
+
+</body>
+</html>
